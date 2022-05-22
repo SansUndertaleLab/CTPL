@@ -1,2 +1,2 @@
-int value:= 25;
-int value2:=5;
+int test:=1;
+int _:=test;
