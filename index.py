@@ -1,4 +1,4 @@
-characters="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+characters="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_"
 numbers="1234567890"
 special=":= ;+-*/"
 class Endcode(Exception):
@@ -59,6 +59,7 @@ with open("test.ctpl","r") as file:
 stack=[]
 env={}
 line=0
+validtypes=["int"]
 try:
     for i in boxes:
         line+=1
@@ -66,6 +67,7 @@ try:
         payload=[]
         setvalue=""
         location=""
+        lineforset=False
         for j in i[::-1]:
             #evaluate
             if action=="NONE":
@@ -75,7 +77,6 @@ try:
                 setvalue=stack.pop(0)
                 action="GETTYPE"
             elif action=="GETTYPE":
-                validtypes=["int"]
                 if not j in validtypes:
                     throwError("TypeError", "Unknown type: \""+j+"\"",line)
                 if j=="int":
@@ -87,6 +88,19 @@ try:
             else:
                 if j==":=":
                     action="SET"
+                    lineforset=True
+                elif j in validtypes:
+                    pass #already accounted with GETTYPE
+                elif not lineforset:
+                    try:
+                        stack.append(env[j])
+                    except KeyError:
+                        etype=evaluatetype(j[0])
+                        if etype=="character":
+                            throwError("NameError","Uninitialised name: \""+j+"\"",line)
+                        else:
+                            throwError("TokenError","Unknown token: \""+j+"\"",line)
+                    action="NONE"
     print(env)
 except Endcode:
     pass
